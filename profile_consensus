@@ -1,0 +1,58 @@
+#calculates PWM and consensus of a give alignment
+
+def parse_fasta(fasta):	
+	fasta_contents = {}
+	tmp_name = 0
+	tmp_seq = 0
+
+	with open(fasta, 'r') as input_file:
+		for line in input_file:
+			if line.startswith('>'):
+				tmp_name = line.strip().lstrip('>')
+			else:
+				tmp_seq = line.strip()
+				fasta_contents[tmp_name] = tmp_seq
+	return fasta_contents
+
+
+def calculate_profile(data):
+	seq_length = len(data[list(data)[0]])
+	init_dict = {
+		'A' : [0 for i in range(seq_length)],
+		'G' : [0 for i in range(seq_length)],
+		'T' : [0 for i in range(seq_length)],
+		'C' : [0 for i in range(seq_length)]
+	}
+
+	for i in range(seq_length):
+		for seq in list(data):
+			init_dict[data[seq][i]][i] += 1
+
+	return init_dict
+
+def get_consensus(profile):
+	seq_length = len(profile[list(profile)[0]])
+	consensus = ''
+	
+	for i in range(seq_length):
+		subdict = {profile[x][i]: x for x in list(profile)}
+		consensus += subdict[max(list(subdict))]
+	
+	return consensus
+
+def main():
+	data = parse_fasta('q.fasta')
+	profile = calculate_profile(data)
+	consensus = get_consensus(profile)
+	output_file = open('shit.txt', 'w')
+	output_file.write(consensus + '\n')
+	for nucleotide in sorted(list(profile)):
+		string_2_print = '{}:'.format(nucleotide)
+		for value in profile[nucleotide]:
+			string_2_print += ' ' + str(value)
+		output_file.write(string_2_print + '\n')
+	output_file.close()
+
+
+if __name__ == '__main__':
+	main()
